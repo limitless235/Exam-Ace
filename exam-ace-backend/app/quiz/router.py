@@ -205,3 +205,45 @@ async def quiz_history(user_id: str = Depends(get_current_user)):
         }
         for row in rows
     ]
+
+
+# --------------------------------------------------------------------------
+# POST /quiz/record — persist a locally-scored quiz attempt
+# --------------------------------------------------------------------------
+
+from pydantic import BaseModel, Field as PydanticField
+
+class RecordAttemptRequest(BaseModel):
+    subject: str
+    difficulty: str
+    score: float = PydanticField(..., ge=0, le=100)
+    total: int = PydanticField(..., ge=1)
+    correct: int = PydanticField(..., ge=0)
+
+
+@router.post("/record")
+async def record_quiz_attempt(
+    body: RecordAttemptRequest,
+    user_id: str = Depends(get_current_user),
+):
+    pool = get_pool()
+    attempt_id = uuid.uuid4()
+
+    await pool.execute(
+        """
+        INSERT INTO quiz_attempts (id, user_id, subject, difficulty, questions, score)
+        VALUES ($1, $2::uuid, $3, $4, $5::jsonb, $6)
+        """,
+        attempt_id,
+        uuid.UUID(user_id),
+        body.subject,
+        body.difficulty,
+        json.dumps([]),  # no question data for local quizzes
+        body.score,
+    )
+
+    logger.info("Recorded local quiz attempt %s for user %s: %s/%s (%s%%)",
+                attempt_id, user_id, body.correct, body.total, body.score)
+
+    return {"status": "recorded", "id": str(attempt_id)}
+

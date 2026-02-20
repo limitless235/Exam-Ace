@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { submitQuiz, type GenerateResponse } from '../api/client';
+import { submitQuiz, recordQuizAttempt, type GenerateResponse } from '../api/client';
 
 export default function QuizTake() {
     useParams<{ id: string }>();
@@ -63,6 +63,10 @@ export default function QuizTake() {
                 correct: correctCount,
                 results,
             };
+            // Fire-and-forget: save to backend for performance tracking
+            recordQuizAttempt(quiz.subject, quiz.difficulty, localResult.score, localResult.total, localResult.correct)
+                .catch(() => { }); // silently ignore if backend is unavailable
+
             navigate(`/results/${quiz.quiz_id}`, { state: { result: localResult }, replace: true });
             return;
         }

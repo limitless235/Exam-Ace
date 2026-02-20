@@ -90,6 +90,13 @@ export function getQuizHistory() {
     return request<QuizHistoryItem[]>('/quiz/history');
 }
 
+export function recordQuizAttempt(subject: string, difficulty: string, score: number, total: number, correct: number) {
+    return request<{ status: string; id: string }>('/quiz/record', {
+        method: 'POST',
+        body: JSON.stringify({ subject, difficulty, score, total, correct }),
+    });
+}
+
 // --- Settings ---
 export interface UserSettings {
     subject: string;
