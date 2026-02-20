@@ -4,12 +4,19 @@ import { getPerformance, type PerformanceData } from '../api/client';
 export default function Performance() {
     const [data, setData] = useState<PerformanceData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     useEffect(() => {
         getPerformance()
             .then(setData)
-            .catch((e) => setError(e.message))
+            .catch(() => {
+                // Backend unavailable — show empty performance
+                setData({
+                    overall: { total_quizzes: 0, avg_score: 0, best_score: 0, worst_score: 0 },
+                    by_subject: [],
+                    by_difficulty: [],
+                    recent: [],
+                });
+            })
             .finally(() => setLoading(false));
     }, []);
 
@@ -24,11 +31,11 @@ export default function Performance() {
         );
     }
 
-    if (error || !data) {
+    if (!data) {
         return (
             <div className="page">
                 <div className="container">
-                    <div className="error-message">{error || 'Failed to load performance data.'}</div>
+                    <div className="error-message">Failed to load performance data.</div>
                 </div>
             </div>
         );

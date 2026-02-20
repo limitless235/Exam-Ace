@@ -11,7 +11,17 @@ export default function Settings() {
     useEffect(() => {
         getSettings()
             .then(setSettings)
-            .catch((e) => setError(e.message))
+            .catch(() => {
+                // Backend unavailable — use sensible defaults
+                setSettings({
+                    subject: 'Computer Science',
+                    difficulty: 'beginner',
+                    question_count: 10,
+                    time_limit: null,
+                    auto_submit: false,
+                    show_explanations: true,
+                });
+            })
             .finally(() => setLoading(false));
     }, []);
 
@@ -49,7 +59,7 @@ export default function Settings() {
         <div className="page">
             <div className="container" style={{ maxWidth: '600px' }}>
                 <div className="page-header">
-                    <h1>⚙️ Settings</h1>
+                    <h1>Settings</h1>
                     <p>Configure your default quiz preferences. Changes are saved server-side.</p>
                 </div>
 
@@ -170,7 +180,7 @@ export default function Settings() {
                         onClick={handleSave}
                         disabled={saving}
                     >
-                        {saving ? 'Saving…' : '💾 Save Settings'}
+                        {saving ? 'Saving…' : 'Save Settings'}
                     </button>
                 </div>
             </div>

@@ -10,9 +10,11 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        Promise.all([getQuizHistory(), getSettings()])
+        Promise.all([
+            getQuizHistory().catch(() => [] as QuizHistoryItem[]),
+            getSettings().catch(() => null),
+        ])
             .then(([h, s]) => { setHistory(h); setSettings(s); })
-            .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
 
