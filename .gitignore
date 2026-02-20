@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+
+# Environment files (contain secrets)
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
