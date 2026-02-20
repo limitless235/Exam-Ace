@@ -228,22 +228,40 @@ async def record_quiz_attempt(
 ):
     pool = get_pool()
     attempt_id = uuid.uuid4()
+    uid = uuid.UUID(user_id)
 
+    # Ensure profile exists (Google OAuth users may not have one yet)
     await pool.execute(
         """
-        INSERT INTO quiz_attempts (id, user_id, subject, difficulty, questions, score)
-        VALUES ($1, $2::uuid, $3, $4, $5::jsonb, $6)
+        INSERT INTO profiles (id, email, display_name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO NOTHING
         """,
-        attempt_id,
-        uuid.UUID(user_id),
-        body.subject,
-        body.difficulty,
-        json.dumps([]),  # no question data for local quizzes
-        body.score,
+        uid,
+        f"{user_id}@oauth",  # placeholder, will be overwritten if trigger runs later
+        "User",
     )
+
+    try:
+        await pool.execute(
+            """
+            INSERT INTO quiz_attempts (id, user_id, subject, difficulty, questions, score)
+            VALUES ($1, $2::uuid, $3, $4, $5::jsonb, $6)
+            """,
+            attempt_id,
+            uid,
+            body.subject,
+            body.difficulty,
+            json.dumps([]),  # no question data for local quizzes
+            body.score,
+        )
+    except Exception as exc:
+        logger.error("Failed to record quiz attempt: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to record quiz attempt.")
 
     logger.info("Recorded local quiz attempt %s for user %s: %s/%s (%s%%)",
                 attempt_id, user_id, body.correct, body.total, body.score)
 
     return {"status": "recorded", "id": str(attempt_id)}
+
 
