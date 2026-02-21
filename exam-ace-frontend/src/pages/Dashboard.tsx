@@ -82,9 +82,8 @@ export default function Dashboard() {
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                             {recentQuizzes.map((q) => (
-                                <Link
+                                <div
                                     key={q.id}
-                                    to={q.score !== null ? `/results/${q.id}` : `/quiz/${q.id}`}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -93,9 +92,6 @@ export default function Dashboard() {
                                         background: 'var(--bg-glass)',
                                         borderRadius: 'var(--radius-md)',
                                         border: '1px solid var(--border-glass)',
-                                        transition: 'all 0.2s ease',
-                                        textDecoration: 'none',
-                                        color: 'var(--text-primary)',
                                     }}
                                 >
                                     <div>
@@ -114,7 +110,7 @@ export default function Dashboard() {
                                             {q.created_at ? new Date(q.created_at).toLocaleDateString() : ''}
                                         </span>
                                     </div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     )}

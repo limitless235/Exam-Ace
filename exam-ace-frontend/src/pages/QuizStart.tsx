@@ -16,6 +16,7 @@ export default function QuizStart() {
     const [subject, setSubject] = useState('Computer Science');
     const [difficulty, setDifficulty] = useState('beginner');
     const [count, setCount] = useState(10);
+    const [timeLimit, setTimeLimit] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [settingsLoading, setSettingsLoading] = useState(true);
@@ -27,6 +28,7 @@ export default function QuizStart() {
                 setSubject(s.subject);
                 setDifficulty(s.difficulty);
                 setCount(s.question_count);
+                setTimeLimit(s.time_limit);
             })
             .catch(console.error)
             .finally(() => setSettingsLoading(false));
@@ -45,12 +47,12 @@ export default function QuizStart() {
                 const localQuestions = sampleFromBank(subject, difficulty, count);
                 if (localQuestions.length > 0) {
                     const localQuiz = bankToApiFormat(localQuestions, subject, difficulty);
-                    navigate(`/quiz/${localQuiz.quiz_id}`, { state: { quiz: localQuiz } });
+                    navigate(`/quiz/${localQuiz.quiz_id}`, { state: { quiz: localQuiz, timeLimit } });
                     return;
                 }
             }
 
-            navigate(`/quiz/${res.quiz_id}`, { state: { quiz: res } });
+            navigate(`/quiz/${res.quiz_id}`, { state: { quiz: res, timeLimit } });
         } catch {
             // Backend entirely unavailable — fall back to local question bank
             const questions = sampleFromBank(subject, difficulty, count);
@@ -58,7 +60,7 @@ export default function QuizStart() {
                 setError('No questions available for this subject/difficulty.');
             } else {
                 const localQuiz = bankToApiFormat(questions, subject, difficulty);
-                navigate(`/quiz/${localQuiz.quiz_id}`, { state: { quiz: localQuiz } });
+                navigate(`/quiz/${localQuiz.quiz_id}`, { state: { quiz: localQuiz, timeLimit } });
             }
         } finally {
             setLoading(false);
