@@ -3,7 +3,7 @@ import type { SubmitResponse } from '../api/client';
 
 export default function Results() {
     const location = useLocation();
-    const result = (location.state as any)?.result as SubmitResponse | undefined;
+    const result = (location.state as { result?: SubmitResponse })?.result;
 
     if (!result) {
         return (

@@ -65,9 +65,9 @@ export default function QuizStart() {
             }
 
             navigate(`/quiz/${res.quiz_id}`, { state: { quiz: res, timeLimit } });
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Silently ignore aborted requests (user navigated away)
-            if (err?.name === 'AbortError') return;
+            if (err instanceof DOMException && err.name === 'AbortError') return;
 
             // Backend entirely unavailable — fall back to local question bank
             const questions = sampleFromBank(subject, difficulty, count);

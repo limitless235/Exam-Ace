@@ -35,8 +35,8 @@ export default function Settings() {
             setSettings(updated);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
-        } catch (err: any) {
-            setError(err.message || 'Failed to save settings');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to save settings');
         } finally {
             setSaving(false);
         }

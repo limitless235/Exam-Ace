@@ -1,37 +1,50 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { submitQuiz, recordQuizAttempt, type GenerateResponse } from '../api/client';
+import { submitQuiz, recordQuizAttempt, type GenerateResponse, type QuizQuestionPublic } from '../api/client';
+
+interface QuizQuestion extends QuizQuestionPublic {
+    correct_index: number;
+    explanation?: string;
+}
+
+interface LocationState {
+    quiz?: GenerateResponse;
+    timeLimit?: number | null;
+}
 
 export default function QuizTake() {
     useParams<{ id: string }>();
     const location = useLocation();
     const navigate = useNavigate();
 
-    const quiz = (location.state as any)?.quiz as GenerateResponse | undefined;
-    const timeLimit = (location.state as any)?.timeLimit as number | null | undefined;
+    const state = location.state as LocationState | undefined;
+    const quiz = state?.quiz;
+    const timeLimit = state?.timeLimit;
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<(number | null)[]>([]);
+    const initialAnswers = useMemo(
+        () => Array.from({ length: quiz?.questions.length ?? 0 }, () => null as number | null),
+        [quiz?.questions.length]
+    );
+    const [answers, setAnswers] = useState<(number | null)[]>(initialAnswers);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     // Timer state (in seconds)
-    const [timeRemaining, setTimeRemaining] = useState<number | null>(
-        timeLimit ? timeLimit * 60 : null
-    );
+    const initialSeconds = timeLimit ? timeLimit * 60 : null;
+    const [timeRemaining, setTimeRemaining] = useState<number | null>(initialSeconds);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const hasAutoSubmitted = useRef(false);
 
+    // Redirect if no quiz data
     useEffect(() => {
         if (!quiz) {
             navigate('/quiz/start', { replace: true });
-            return;
         }
-        setAnswers(new Array(quiz.questions.length).fill(null));
     }, [quiz, navigate]);
 
     // Countdown timer
     useEffect(() => {
-        if (timeRemaining === null || timeRemaining <= 0) return;
+        if (initialSeconds === null) return;
 
         timerRef.current = setInterval(() => {
             setTimeRemaining((prev) => {
@@ -47,14 +60,14 @@ export default function QuizTake() {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [timeRemaining === null]); // only re-run if timer existence changes
+    }, [initialSeconds]);
 
-    // Auto-submit when timer hits 0
-    const handleSubmit = useCallback(async (forceSubmit = false) => {
+    // Submit handler
+    const doSubmit = useCallback(async (finalAnswers: (number | null)[], force: boolean) => {
         if (!quiz) return;
-        const finalAnswers = forceSubmit ? answers.map(a => a ?? 0) : answers;
-        const allAnswered = finalAnswers.every(a => a !== null);
-        if (!allAnswered && !forceSubmit) return;
+        const resolved = force ? finalAnswers.map(a => a ?? 0) : finalAnswers;
+        const allDone = resolved.every(a => a !== null);
+        if (!allDone && !force) return;
 
         setSubmitting(true);
         setError('');
@@ -62,8 +75,8 @@ export default function QuizTake() {
         const isLocalQuiz = quiz.quiz_id.startsWith('local-');
 
         if (isLocalQuiz) {
-            const results = quiz.questions.map((q: any, i: number) => {
-                const selected = finalAnswers[i] as number;
+            const results = (quiz.questions as QuizQuestion[]).map((q, i) => {
+                const selected = resolved[i] as number;
                 return {
                     question: q.question,
                     options: q.options,
@@ -82,28 +95,33 @@ export default function QuizTake() {
                 results,
             };
             recordQuizAttempt(quiz.subject, quiz.difficulty, localResult.score, localResult.total, localResult.correct)
-                .catch(() => { });
+                .catch(() => { /* silently ignore */ });
 
             navigate(`/results/${quiz.quiz_id}`, { state: { result: localResult }, replace: true });
             return;
         }
 
         try {
-            const result = await submitQuiz(quiz.quiz_id, finalAnswers as number[]);
+            const result = await submitQuiz(quiz.quiz_id, resolved as number[]);
             navigate(`/results/${quiz.quiz_id}`, { state: { result }, replace: true });
-        } catch (err: any) {
-            setError(err.message || 'Submission failed');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Submission failed');
             setSubmitting(false);
         }
-    }, [quiz, answers, navigate]);
+    }, [quiz, navigate]);
 
-    // Watch for timer expiry
+    // Keep a ref to latest answers for the auto-submit effect
+    const answersRef = useRef(answers);
+    useEffect(() => {
+        answersRef.current = answers;
+    }, [answers]);
+
     useEffect(() => {
         if (timeRemaining === 0 && !hasAutoSubmitted.current && quiz) {
             hasAutoSubmitted.current = true;
-            handleSubmit(true);
+            doSubmit(answersRef.current, true);
         }
-    }, [timeRemaining, quiz, handleSubmit]);
+    }, [timeRemaining, quiz, doSubmit]);
 
     if (!quiz) return null;
 
@@ -237,7 +255,7 @@ export default function QuizTake() {
                     ) : (
                         <button
                             className="btn btn-primary"
-                            onClick={() => handleSubmit(false)}
+                            onClick={() => doSubmit(answers, false)}
                             disabled={!allAnswered || submitting}
                         >
                             {submitting ? 'Submitting…' : 'Submit Quiz'}
