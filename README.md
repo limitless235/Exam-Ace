@@ -2,7 +2,7 @@
 
 An AI-powered exam preparation platform that generates quizzes tailored to your subject and difficulty level, tracks your performance over time, and helps you study smarter.
 
-I built this because I wanted something that goes beyond static flashcards — a tool that actually adapts to what you're studying and gives you immediate feedback with explanations.
+I built this because I wanted something that goes beyond static flashcards and last minute revisions. It is a tool that actually adapts to what you're studying and gives you immediate feedback with explanations.
 
 ## What it does
 
