@@ -72,10 +72,11 @@ export interface QuizHistoryItem {
     created_at: string | null;
 }
 
-export function generateQuiz(subject: string, difficulty: string, count: number) {
+export function generateQuiz(subject: string, difficulty: string, count: number, signal?: AbortSignal) {
     return request<GenerateResponse>('/quiz/generate', {
         method: 'POST',
         body: JSON.stringify({ subject, difficulty, count }),
+        signal,
     });
 }
 

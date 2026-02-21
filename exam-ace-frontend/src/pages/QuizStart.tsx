@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSettings, generateQuiz, type UserSettings } from '../api/client';
 import { sampleFromBank, bankToApiFormat } from '../data/questionBank';
@@ -20,6 +20,7 @@ export default function QuizStart() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [settingsLoading, setSettingsLoading] = useState(true);
+    const abortRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         getSettings()
@@ -32,14 +33,25 @@ export default function QuizStart() {
             })
             .catch(console.error)
             .finally(() => setSettingsLoading(false));
+
+        // Abort any in-flight generation if user leaves the page
+        return () => {
+            abortRef.current?.abort();
+        };
     }, []);
 
     const handleGenerate = async () => {
         setError('');
         setLoading(true);
+
+        // Cancel any previous in-flight request
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         try {
             // Try the backend API first
-            const res = await generateQuiz(subject, difficulty, count);
+            const res = await generateQuiz(subject, difficulty, count, controller.signal);
 
             // If the backend returned practice_bank questions (LLM offline),
             // use the richer frontend bank instead (960 questions, all 16 subjects)
@@ -53,7 +65,10 @@ export default function QuizStart() {
             }
 
             navigate(`/quiz/${res.quiz_id}`, { state: { quiz: res, timeLimit } });
-        } catch {
+        } catch (err: any) {
+            // Silently ignore aborted requests (user navigated away)
+            if (err?.name === 'AbortError') return;
+
             // Backend entirely unavailable — fall back to local question bank
             const questions = sampleFromBank(subject, difficulty, count);
             if (questions.length === 0) {
