@@ -6,26 +6,21 @@ I built this because I wanted something that goes beyond static flashcards and l
 
 ## Screenshots
 
-![Screenshot 1](<images/WhatsApp Image 2026-02-21 at 11.15.27.jpeg>)
-*Quiz UI*
+| Quiz UI | Score page after completion of quiz along with explanations to questions |
+|---------|--------------------------------------------------------------------------|
+| ![Screenshot 1](<images/WhatsApp Image 2026-02-21 at 11.15.27.jpeg>) | ![Screenshot 2](<images/WhatsApp Image 2026-02-21 at 11.15.44.jpeg>) |
 
-![Screenshot 2](<images/WhatsApp Image 2026-02-21 at 11.15.44.jpeg>)
-*Score page after completion of quiz along with explanations to questions*
+| Performance Page | Settings Page |
+|------------------|---------------|
+| ![Screenshot 3](<images/WhatsApp Image 2026-02-21 at 11.16.11.jpeg>) | ![Screenshot 4](<images/WhatsApp Image 2026-02-21 at 11.16.30.jpeg>) |
 
-![Screenshot 3](<images/WhatsApp Image 2026-02-21 at 11.16.11.jpeg>)
-*Performance Page*
+| Dashboard Page | Quiz Configuration Page |
+|----------------|-------------------------|
+| ![Screenshot 5](<images/WhatsApp Image 2026-02-21 at 11.16.51.jpeg>) | ![Screenshot 6](<images/WhatsApp Image 2026-02-21 at 11.17.16.jpeg>) |
 
-![Screenshot 4](<images/WhatsApp Image 2026-02-21 at 11.16.30.jpeg>)
-*Settings Page*
-
-![Screenshot 5](<images/WhatsApp Image 2026-02-21 at 11.16.51.jpeg>)
-*Dashboard Page*
-
-![Screenshot 6](<images/WhatsApp Image 2026-02-21 at 11.17.16.jpeg>)
-*Quiz Configuration Page*
-
-![Screenshot 7](<images/WhatsApp Image 2026-02-21 at 11.17.31.jpeg>)
-*Authentication Page*
+| Authentication Page | |
+|---------------------|---|
+| ![Screenshot 7](<images/WhatsApp Image 2026-02-21 at 11.17.31.jpeg>) | |
 
 ## What it does
 
